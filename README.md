@@ -6,4 +6,4 @@ The code is based on the following repo: https://github.com/gempir/go-twitch-irc
 
 
 
-
+It also currently logs timeouts/bans

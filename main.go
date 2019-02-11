@@ -4,7 +4,6 @@ import (
         "github.com/gempir/go-twitch-irc"
         "fmt"
         "strings"
-        "log"
         "os"
         "time"
 )
@@ -20,72 +19,24 @@ func main() {
         	}
         	defer file.Close()
 		fmt.Fprintf(file, message.Text)
-                fmt.Fprintf(file, "\n")
+                fmt.Fprintf(filOBe, "\n")
                 fmt.Println(message.Text)
         })
 */
         client.OnNewMessage(func(channel string, user twitch.User, message twitch.Message) {
-	if (len(user.UserType) != 0 || user.Username == "mrtobbzi") {
-		if strings.Contains(message.Text, "!command") {
-                        current_time := time.Now().UTC()
-			if _ := os.Stat(current_time.Format("2006-01-02.txt")) {
-				file, erro := os.Create(current_time.Format("2006-01-02.txt"))
-				if erro != nil {
-				log.Fatal("cannot create file", erro)
+		if (len(user.UserType) != 0 || user.Username == "mrtobbzi") {
+			if strings.Contains(message.Text, "!command") {
+			        current_time := time.Now().UTC()
+				if fileExists(current_time.Format("2006-01-02.txt")) {
+					writeFile(current_time.Format("2006-01-02.txt"), user.Username, message.Text)
+				} else {
+					createFile(current_time.Format("2006-01-02.txt"))
+					writeFile(current_time.Format("2006-01-02.txt"), user.Username, message.Text)
 				}
-				defer file.Close()
-			}
-			fmt.Fprintf(file, user.Username)
-                        fmt.Fprintf(file, ", ")
-                        fmt.Fprintf(file, message.Text)
-                        fmt.Fprintf(file, "\n")
-                        fmt.Println(message.Text)
-                }
-	}
-		/*
-                if strings.Contains(message.Text, "!command add") {
-                        fmt.Fprintf(file, user.Username)
-                        fmt.Fprintf(file, ": ")
-                        fmt.Fprintf(file, message.Text)
-                        fmt.Fprintf(file, "\n")
-                        fmt.Println(message.Text)
-                }
-                if strings.Contains(message.Text, "!command remove") {
-                        fmt.Fprintf(file, user.Username)
-                        fmt.Fprintf(file, ": ")
-                        fmt.Fprintf(file, message.Text)
-                        fmt.Fprintf(file, "\n")
-                        fmt.Println(message.Text)
-                }
-                if strings.Contains(message.Text, "!editcom") {
-                        fmt.Fprintf(file, user.Username)
-                        fmt.Fprintf(file, ": ")
-                        fmt.Fprintf(file, message.Text)
-                        fmt.Fprintf(file, "\n")
-                        fmt.Println(message.Text)
-    }
-                if strings.Contains(message.Text, "!command add") {
-                        fmt.Fprintf(file, user.Username)
-                        fmt.Fprintf(file, ": ")
-                        fmt.Fprintf(file, message.Text)
-                        fmt.Fprintf(file, "\n")
-                        fmt.Println(message.Text)
-                }
-                if strings.Contains(message.Text, "!command edit") {
-                        fmt.Fprintf(file, user.Username)
-                        fmt.Fprintf(file, ": ")
-                        fmt.Fprintf(file, message.Text)
-                        fmt.Fprintf(file, "\n")
-                        fmt.Println(message.Text)
-                }
-                if strings.Contains(message.Text, "!command delete") {
-                        fmt.Fprintf(file, user.Username)
-                        fmt.Fprintf(file, ": ")
-                        fmt.Fprintf(file, message.Text)
-                        fmt.Fprintf(file, "\n")
-                        fmt.Println(message.Text)
-                }
-		*/
+				fmt.Println(message.Text)
+
+	                }
+		}
         })
 
         client.Join("mrtobbzi")
@@ -97,4 +48,26 @@ func main() {
 }
 
 
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
 
+func writeFile(filename string, name string, message string) error {
+	file, err := os.OpenFile(filename, os.O_APPEND, 0644)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(fmt.Sprintf("%s, %s\n", name, message))
+	return err
+}
+
+func createFile(filename string) error {
+	file, err := os.Create(filename)
+	defer file.Close()
+	return err
+}
